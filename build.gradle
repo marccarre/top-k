@@ -1,0 +1,60 @@
+apply plugin: 'java'
+apply plugin: 'jacoco'                // Test coverage
+apply plugin: 'info.solidsoft.pitest' // Mutation testing
+
+group 'com.carmatechnologies.collection'
+version '1.0'
+sourceCompatibility = 1.8
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  // Shared versions:
+  ext {
+    guavaVersion = '21.0'
+    log4jVersion = '2.8.1'
+  }
+
+  // Utilities:
+  compile 'com.google.code.findbugs:jsr305:3.0.1'
+  compile "com.google.guava:guava:$guavaVersion"
+
+  // Logging:
+  compile 'org.slf4j:slf4j-api:1.7.25'
+  compile "org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion"
+  compile "org.apache.logging.log4j:log4j-core:$log4jVersion"
+
+  // Testing:
+  testCompile('junit:junit:4.12') {
+    // JUnit transitively depends on hamcrest-core, but hamcrest-all contains more matchers,
+    // so we exclude it to avoid potential conflicts if versions differ:
+    exclude group: 'org.hamcrest'
+  }
+  testCompile 'org.hamcrest:hamcrest-all:1.3'
+  testCompile "com.google.guava:guava-testlib:$guavaVersion"
+}
+
+// Code Coverage with JaCoCo:
+jacoco {
+  toolVersion = '0.7.9'
+}
+jacocoTestReport {
+  reports {
+    xml.enabled false
+    csv.enabled false
+    html.destination "${buildDir}/reports/jacoco"
+  }
+}
+test.finalizedBy jacocoTestReport
+
+// Mutation Testing & Coverage with PITest:
+buildscript {
+  repositories {
+    mavenCentral()
+  }
+  dependencies {
+    classpath 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.1.11'
+  }
+}
